@@ -14,7 +14,6 @@ import javax.persistence.*;
 @Builder
 public class Book {
     @Id
-    @GeneratedValue
     private Integer id;
     private String name;
     private String author;

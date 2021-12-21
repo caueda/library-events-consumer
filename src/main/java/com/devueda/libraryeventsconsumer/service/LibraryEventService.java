@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @Slf4j
 public class LibraryEventService {
@@ -27,10 +29,26 @@ public class LibraryEventService {
         if(libraryEvent.getLibraryEventType().equals(LibraryEventType.NEW)) {
             save(libraryEvent);
         } else if(libraryEvent.getLibraryEventType().equals(LibraryEventType.UPDATE)) {
-
+            validate(libraryEvent);
         } else {
             log.info("Invalid Library Event.");
         }
+    }
+
+    private void validate(LibraryEvent libraryEvent) {
+        if(libraryEvent.getId() == null) {
+            throw new IllegalArgumentException("The Library Event Id is missing.");
+        }
+
+        Optional<LibraryEvent> libraryEventOptional = libraryEventRepository.findById(libraryEvent.getId());
+
+        if(!libraryEventOptional.isPresent()) {
+            throw new IllegalArgumentException("Not a valid Library Event.");
+        }
+
+        log.info("Validation is successfull for the Library Event: {}", libraryEventOptional.get());
+
+        save(libraryEvent);
     }
 
     private void save(LibraryEvent libraryEvent) {

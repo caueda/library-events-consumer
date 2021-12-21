@@ -19,8 +19,7 @@ public class LibraryEventConsumerConfig {
 //        The code below will start three consumer threads. It is not necessary
 //        when running in a cloud environment.
 //        factory.setConcurrency(3);
-
-        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
+//        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
 
         return factory;
     }
