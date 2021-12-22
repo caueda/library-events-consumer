@@ -18,6 +18,6 @@ public class Book {
     private String name;
     private String author;
     @OneToOne
-    @JoinColumn(name="id")
+    @JoinColumn(name="library_event_id")
     private LibraryEvent libraryEvent;
 }

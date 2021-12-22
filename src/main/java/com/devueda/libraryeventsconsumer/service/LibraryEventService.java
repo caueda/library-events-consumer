@@ -28,6 +28,8 @@ public class LibraryEventService {
         log.info("Library Event {}", libraryEvent);
         if(libraryEvent.getLibraryEventType().equals(LibraryEventType.NEW)) {
             save(libraryEvent);
+            log.info("library event saved {}", libraryEvent);
+            log.info("library.book event saved {}", libraryEvent.getBook());
         } else if(libraryEvent.getLibraryEventType().equals(LibraryEventType.UPDATE)) {
             validate(libraryEvent);
         } else {

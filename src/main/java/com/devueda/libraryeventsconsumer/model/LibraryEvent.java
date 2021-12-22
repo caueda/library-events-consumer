@@ -12,6 +12,7 @@ import javax.persistence.*;
 public class LibraryEvent {
     @Id
     @GeneratedValue
+    @Column(name="library_event_id")
     private Integer id;
     @OneToOne(mappedBy = "libraryEvent", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @ToString.Exclude
