@@ -2,7 +2,7 @@ package com.devueda.libraryeventsconsumer.service;
 
 import com.devueda.libraryeventsconsumer.model.LibraryEvent;
 import com.devueda.libraryeventsconsumer.model.LibraryEventType;
-import com.devueda.libraryeventsconsumer.repository.LibraryEventRepository;
+import com.devueda.libraryeventsconsumer.repository.LibraryEventsRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -13,12 +13,12 @@ import java.util.Optional;
 
 @Service
 @Slf4j
-public class LibraryEventService {
+public class LibraryEventsService {
 
-    private LibraryEventRepository libraryEventRepository;
+    private LibraryEventsRepository libraryEventRepository;
     private ObjectMapper objectMapper;
 
-    public LibraryEventService(LibraryEventRepository libraryEventRepository, ObjectMapper objectMapper) {
+    public LibraryEventsService(LibraryEventsRepository libraryEventRepository, ObjectMapper objectMapper) {
         this.libraryEventRepository = libraryEventRepository;
         this.objectMapper = objectMapper;
     }
