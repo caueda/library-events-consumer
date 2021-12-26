@@ -1,10 +1,13 @@
 package com.devueda.libraryeventsconsumer.config;
 
+import com.devueda.libraryeventsconsumer.service.LibraryEventsService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.ConcurrentKafkaListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
@@ -15,10 +18,17 @@ import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.util.backoff.FixedBackOff;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
 @Configuration
 @Slf4j
 @EnableKafka
 public class LibraryEventConsumerConfig {
+    @Autowired
+    LibraryEventsService libraryEventsService;
+
     @Bean
     ConcurrentKafkaListenerContainerFactory<?, ?> kafkaListenerContainerFactory(ConcurrentKafkaListenerContainerFactoryConfigurer configurer,
                                                                                 ConsumerFactory<Object, Object> kafkaConsumerFactory) {
@@ -32,8 +42,24 @@ public class LibraryEventConsumerConfig {
             log.info("Exception in consumerConfig is {} and the record is {}", thrownException.getMessage(), data);
             //You can persist the record, just in case you need to track
         });
-//        factory.setRetryTemplate(retryTemplate());
-        factory.setCommonErrorHandler(commonErrorHandler());
+        factory.setRetryTemplate(retryTemplate());
+        factory.setRecoveryCallback((context) -> {
+            if(context.getLastThrowable().getCause() instanceof RecoverableDataAccessException) {
+                //Recovery logic
+                log.info("Inside the recoverable logic.");
+//                Arrays.asList(context.attributeNames()).forEach(attributeName -> {
+//                    log.info("Attribute name is: {}", attributeName);
+//                    log.info("Attribute Value is: {}", context.getAttribute(attributeName));
+//                });
+                ConsumerRecord<Integer, String> consumerRecord = (ConsumerRecord<Integer, String>) context.getAttribute("record");
+                libraryEventsService.handleRecovery(consumerRecord);
+            } else {
+                log.info("Inside the non recoverable logic.");
+                throw new RuntimeException(context.getLastThrowable());
+            }
+            return null;
+        });
+//        factory.setCommonErrorHandler(commonErrorHandler());
         return factory;
     }
 
@@ -54,8 +80,11 @@ public class LibraryEventConsumerConfig {
     }
 
     private RetryPolicy simpleRetryPolicy() {
-        SimpleRetryPolicy simpleRetryPolicy = new SimpleRetryPolicy();
-        simpleRetryPolicy.setMaxAttempts(3);
+        Map<Class<? extends Throwable>, Boolean> exceptionsMap = new HashMap<>();
+        exceptionsMap.put(IllegalArgumentException.class, false);
+        exceptionsMap.put(RecoverableDataAccessException.class, true);
+        SimpleRetryPolicy simpleRetryPolicy = new SimpleRetryPolicy(3, exceptionsMap, true);
+//        simpleRetryPolicy.setMaxAttempts(3);
         return simpleRetryPolicy;
     }
 }
